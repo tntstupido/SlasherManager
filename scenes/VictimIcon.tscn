@@ -1,0 +1,135 @@
+[gd_scene load_steps=3 format=3 uid="uid://cb5qxg73aof68"]
+
+[sub_resource type="GDScript" id="GDScript_victim"]
+script/source = "extends Button
+
+signal victim_eliminated(points)
+signal victim_targeted(data)
+
+var victim_name: String = \"\"
+var flavor_text: String = \"\"
+var max_hp: float = 1.0
+var current_hp: float = 1.0
+var reward_points: float = 1.0
+var is_eliminated: bool = false
+
+@onready var portrait = $Portrait
+@onready var x_label = $XLabel
+@onready var name_label = $NameLabel
+
+func setup(type_name: String, texture_path: String, flavor: String):
+	victim_name = type_name
+	flavor_text = flavor
+	name_label.text = type_name
+	
+	if FileAccess.file_exists(texture_path):
+		portrait.texture = load(texture_path)
+	
+	x_label.hide()
+	name_label.hide() # Hide default label if we have a portrait
+
+func setup_stats(hp: float, reward: float):
+	max_hp = hp
+	current_hp = hp
+	reward_points = reward
+	is_eliminated = false
+	update_visuals()
+
+func take_damage(amount: float):
+	if is_eliminated: return
+	
+	current_hp -= amount
+	update_visuals()
+	
+	# Emit target signal on every hit to update UI
+	emit_targeted_signal()
+	
+	if current_hp <= 0:
+		eliminate()
+	else:
+		var tween = create_tween()
+		tween.tween_property(self, \"scale\", Vector2(0.9, 0.9), 0.05)
+		tween.tween_property(self, \"scale\", Vector2(1.0, 1.0), 0.05)
+
+func emit_targeted_signal():
+	victim_targeted.emit({
+		\"name\": victim_name,
+		\"flavor\": flavor_text,
+		\"hp\": current_hp,
+		\"max_hp\": max_hp
+	})
+
+func eliminate():
+	is_eliminated = true
+	x_label.show()
+	portrait.modulate.a = 0.5
+	victim_eliminated.emit(reward_points)
+	
+	var tween = create_tween()
+	tween.tween_property(self, \"modulate:a\", 0.0, 1.0).set_delay(0.5)
+	await tween.finished
+	queue_free()
+
+func update_visuals():
+	if max_hp <= 0: return
+	var hp_percent = clamp(current_hp / max_hp, 0.0, 1.0)
+	# Redden the portrait as it loses HP
+	portrait.modulate = Color(1.0, hp_percent, hp_percent, 1.0)
+
+func _on_pressed():
+	emit_targeted_signal()
+"
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clear"]
+
+[node name="VictimIcon" type="Button"]
+custom_minimum_size = Vector2(400, 400)
+offset_right = 400.0
+offset_bottom = 400.0
+pivot_offset = Vector2(200, 200)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_clear")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_clear")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_clear")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_clear")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_clear")
+script = SubResource("GDScript_victim")
+
+[node name="Portrait" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_font_sizes/font_size = 48
+text = "CHEERLEADER"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="XLabel" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.8, 0, 0, 1)
+theme_override_font_sizes/font_size = 300
+text = "X"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

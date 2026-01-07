@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3 uid="uid://b2x2x2x2x2x2"]
+
+[sub_resource type="GDScript" id="GDScript_x"]
+script/source = "extends Label
+
+func _ready():
+	# Randomize rotation slightly for 'hand-drawn' feel
+	rotation = randf_range(-0.2, 0.2)
+	
+	# Fade out and delete
+	var tween = create_tween()
+	tween.tween_property(self, \"modulate:a\", 0.0, 0.5).set_delay(0.2)
+	tween.finished.connect(queue_free)
+"
+
+[node name="RedX" type="Label"]
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = 50.0
+pivot_offset = Vector2(50, 50)
+theme_override_colors/font_color = Color(0.8, 0.1, 0.1, 1)
+theme_override_font_sizes/font_size = 80
+text = "X"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = SubResource("GDScript_x")

@@ -1,0 +1,27 @@
+[gd_scene load_steps=2 format=3 uid="uid://b3y3y3y3y3y3"]
+
+[sub_resource type="GDScript" id="GDScript_float"]
+script/source = "extends Label
+
+func _ready():
+	# Initial appearance
+	modulate.a = 1.0
+	
+	# Tween for floating and fading
+	var tween = create_tween().set_parallel(true)
+	tween.tween_property(self, \"position:y\", position.y - 100, 1.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, \"modulate:a\", 0.0, 1.0).set_delay(0.5)
+	
+	await tween.finished
+	queue_free()
+"
+
+[node name="FloatingText" type="Label"]
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_colors/font_color = Color(0.133333, 0.133333, 0.133333, 1)
+theme_override_font_sizes/font_size = 32
+text = "+1"
+horizontal_alignment = 1
+vertical_alignment = 1
+script = SubResource("GDScript_float")
