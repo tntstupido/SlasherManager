@@ -5,6 +5,7 @@ script/source = "extends Button
 
 signal victim_eliminated(points)
 signal victim_targeted(data)
+signal boss_attacks(damage)
 
 var victim_name: String = \"\"
 var flavor_text: String = \"\"
@@ -12,6 +13,11 @@ var max_hp: float = 1.0
 var current_hp: float = 1.0
 var reward_points: float = 1.0
 var is_eliminated: bool = false
+
+# Boss fight back mechanic
+var boss_attack_timer: float = 0.0
+var boss_attack_interval: float = 3.0  # Attack every 3 seconds
+var boss_attack_damage: float = 50.0  # Removes 50 screams
 
 @onready var portrait = $Portrait
 @onready var x_label = $XLabel
@@ -78,6 +84,18 @@ func update_visuals():
 
 func _on_pressed():
 	emit_targeted_signal()
+
+func _process(delta):
+	# Boss fight back mechanic
+	if has_meta(\"is_boss\") and not is_eliminated:
+		boss_attack_timer += delta
+		if boss_attack_timer >= boss_attack_interval:
+			boss_attack_timer = 0.0
+			boss_attacks.emit(boss_attack_damage)
+			# Visual feedback for boss attack
+			var tween = create_tween()
+			tween.tween_property(self, \"modulate\", Color(1.5, 0.5, 0.5), 0.1)
+			tween.tween_property(self, \"modulate\", Color(1.0, 0.9, 0.9), 0.1)
 "
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clear"]

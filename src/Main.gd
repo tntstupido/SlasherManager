@@ -5,6 +5,11 @@ var screams: float = 0.0
 var click_damage: float = 1.0
 var auto_damage: float = 0.0
 
+# Boss tracking
+var kills_count: int = 0
+var kills_until_boss: int = 10  # Boss appears every 10 kills
+var boss_active: bool = false
+
 # Victim Types (HP, Reward, Portrait, Flavor)
 var victim_defs = {
 	"TOURIST": {
@@ -36,6 +41,13 @@ var victim_defs = {
 		"reward": 40.0,
 		"icon": "res://assets/Characters/influencer.png",
 		"flavor": "Actually wants to be killed for the views."
+	},
+	"FINAL_GIRL": {
+		"hp": 50.0,
+		"reward": 500.0,
+		"icon": "res://assets/Characters/final_girl.png",
+		"flavor": "She's been through hell... and she's not going down easy.",
+		"is_boss": true
 	}
 }
 
@@ -259,16 +271,42 @@ func _process(delta):
 func spawn_victim():
 	var victim = victim_scene.instantiate()
 	map_area.add_child(victim)
-	
-	# Random type
-	var keys = victim_defs.keys()
-	var type_name = keys[randi() % keys.size()]
-	var data = victim_defs[type_name]
-	
+
+	var type_name: String
+	var data: Dictionary
+
+	# Check if it's time for a boss spawn
+	if kills_count >= kills_until_boss and not boss_active:
+		type_name = "FINAL_GIRL"
+		data = victim_defs[type_name]
+		boss_active = true
+		# Show warning message
+		spawn_floating_text("THE FINAL GIRL!", Vector2(map_area.size.x / 2, 100), Color(1, 0, 0))
+	else:
+		# Random regular victim (exclude FINAL_GIRL)
+		var regular_victims = []
+		for key in victim_defs.keys():
+			if not victim_defs[key].get("is_boss", false):
+				regular_victims.append(key)
+		type_name = regular_victims[randi() % regular_victims.size()]
+		data = victim_defs[type_name]
+
 	victim.setup(type_name, data["icon"], data["flavor"])
 	victim.setup_stats(data["hp"], data["reward"])
-	
+
+	# Store boss flag on victim for special handling
+	var is_boss = data.get("is_boss", false)
+	if is_boss:
+		victim.set_meta("is_boss", true)
+		# Make boss larger - increase both scale and minimum size
+		victim.custom_minimum_size = Vector2(600, 600)  # 1.5x larger than 400
+		victim.scale = Vector2(1.0, 1.0)  # Keep scale at 1.0 since we're using custom_minimum_size
+		victim.pivot_offset = Vector2(300, 300)  # Adjust pivot for larger size
+		victim.modulate = Color(1.0, 0.9, 0.9)  # Slight red tint
+
 	var victim_size = Vector2(400, 400)
+	if is_boss:
+		victim_size = victim_size * 1.5  # Account for larger size in positioning
 	var area_size = map_area.size
 	
 	var valid_pos = false
@@ -295,6 +333,7 @@ func spawn_victim():
 	victim.pressed.connect(_on_victim_clicked.bind(victim))
 	victim.victim_eliminated.connect(_on_victim_eliminated)
 	victim.victim_targeted.connect(_on_victim_targeted)
+	victim.boss_attacks.connect(_on_boss_attacks)
 
 func _on_victim_clicked(victim):
 	if victim.is_eliminated: return
@@ -312,11 +351,33 @@ func _on_victim_targeted(data):
 	target_hp_bar.max_value = data["max_hp"]
 	target_hp_bar.value = data["hp"]
 
+func _on_boss_attacks(damage):
+	# Boss fights back by reducing screams
+	screams = max(0, screams - damage)
+	spawn_floating_text("-%.0f" % damage, Vector2(map_area.size.x / 2, map_area.size.y / 2), Color(1, 0.3, 0.3))
+	update_ui()
+
 func _on_victim_eliminated(points):
 	screams += points
 	spawn_floating_text("+%d" % int(points), get_global_mouse_position(), Color(1, 0, 0))
+
+	# Track kills and check if it was a boss
+	kills_count += 1
+
+	# Check if the eliminated victim was the boss
+	var eliminated_was_boss = false
+	for child in map_area.get_children():
+		if child.has_meta("is_boss") and child.is_eliminated:
+			eliminated_was_boss = true
+			break
+
+	if eliminated_was_boss:
+		boss_active = false
+		kills_count = 0  # Reset kill counter after boss is defeated
+		spawn_floating_text("BOSS DEFEATED!", Vector2(map_area.size.x / 2, 150), Color(1, 0.8, 0))
+
 	update_ui()
-	
+
 	await get_tree().create_timer(1.5).timeout
 	spawn_victim()
 
@@ -371,7 +432,14 @@ func update_ui_labels():
 	scream_label.text = "Screams: %d" % int(screams)
 	scream_label.add_theme_font_override("font", font_typewriter)
 	scream_label.add_theme_font_size_override("font_size", 42)
-	
-	sps_label.text = "DPS: %.1f" % auto_damage
+
+	var kills_remaining = kills_until_boss - kills_count
+	var dps_text = "DPS: %.1f" % auto_damage
+	if not boss_active and kills_remaining > 0:
+		dps_text += " | Boss in: %d kills" % kills_remaining
+	elif boss_active:
+		dps_text += " | BOSS ACTIVE!"
+
+	sps_label.text = dps_text
 	sps_label.add_theme_font_override("font", font_typewriter)
 	sps_label.add_theme_font_size_override("font_size", 24)

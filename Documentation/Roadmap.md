@@ -22,9 +22,13 @@ Fokus: Davanje svrhe sakupljenim resursima.
 
 ## Faza 3: Progresija i Sadržaj
 Fokus: Dugoročni ciljevi i raznovrsnost.
-- [ ] **Boss Borba ("Final Girl"):**
-    - Specijalna meta koja se pojavljuje nakon X ubistava.
-    - Ima puno HP-a i "uzvraća udarac".
+- [x] **Boss Borba ("Final Girl"):**
+    - [x] Specijalna meta koja se pojavljuje nakon 10 ubistava.
+    - [x] Ima 50 HP (mnogo više od običnih žrtava).
+    - [x] "Uzvraća udarac" - oduzima 50 vrisaka svakih 3 sekunde.
+    - [x] Veća od ostalih žrtava (600x600 umesto 400x400).
+    - [x] Vizuelni efekti: crvenkasti ton, upozoravajuće poruke.
+    - [x] Nagrada: 500 vrisaka.
 - [ ] **Novi Nivoi:**
     - Animacija "okretanja stranice".
     - Prelazak sa "Kampa na jezeru" na "Predgrađe".
