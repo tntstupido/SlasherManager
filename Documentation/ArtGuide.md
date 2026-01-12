@@ -22,9 +22,27 @@ The entire game is designed as a **"Ink & Paper / Hand-Drawn" aesthetic** - ever
 - **Headers:** "Messy Handwriting" font (as if scrawled in a hurry)
 - **Body Text:** "Typewriter" font (monospaced, looks like police reports or newspaper clippings)
 - **Numbers:** Big, bold "Stamp" style or thick marker font
-- **Current Fonts Used:**
-  - Title: Handwritten font (Size 28, centered)
-  - Description: Typewriter font (Size 18, centered)
+- **Implemented Fonts (v0.3.1):**
+  - **Patrick_Hand** - Handwritten font for headers and titles
+  - **Special_Elite** - Typewriter font for body text and numbers
+
+### Font Usage Guide
+
+**Static UI Elements (Main.tscn):**
+- Game Title "SLASHER MANAGER": Patrick_Hand, Size 48
+- Section Labels ("UPGRADES", "HUNT AREA"): Patrick_Hand, Size 24-28
+- Resource Counters (Screams, DPS): Special_Elite, Size 24-42
+- Target Info (Name/Flavor): Patrick_Hand (24) / Special_Elite (16)
+
+**Dynamic Elements (Shop Items - Main.gd):**
+- Item Titles: Patrick_Hand, Size 28
+- Item Descriptions: Special_Elite, Size 18
+- Item Costs: Special_Elite, Size 24
+
+**Background Enhancements:**
+- Upgrade info boxes use semi-transparent background (aged paper color)
+- Corner radius: 3px for polished appearance
+- Improves text readability while maintaining aesthetic
 
 ## Character Art Style
 

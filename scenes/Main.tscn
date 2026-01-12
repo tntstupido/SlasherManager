@@ -1,7 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://c6j8l8q8q8q8"]
+[gd_scene load_steps=8 format=3 uid="uid://c6j8l8q8q8q8"]
 
 [ext_resource type="Script" uid="uid://dx040opqense6" path="res://src/Main.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://d4am0dmqj1po5" path="res://assets/Environment/notebook.png" id="2_rvslj"]
+[ext_resource type="Texture2D" uid="uid://bmd7d1hq545uw" path="res://assets/Environment/notebook_01.png" id="3_0bbpv"]
+[ext_resource type="Texture2D" uid="uid://d33fl6elnipg0" path="res://assets/Environment/level1_map_01.png" id="3_rarhs"]
+[ext_resource type="FontFile" uid="uid://b8q4k3j8q8k" path="res://assets/fonts/Patrick_Hand/PatrickHand-Regular.ttf" id="font_handwritten"]
+[ext_resource type="FontFile" uid="uid://c9r5k4j9r5l" path="res://assets/fonts/Special_Elite/SpecialElite-Regular.ttf" id="font_typewriter"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_bg"]
 bg_color = Color(0.85, 0.85, 0.85, 0)
@@ -46,19 +49,6 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 1)
 
-[node name="TextureRect" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -197.0
-offset_top = 68.0
-offset_right = 191.0
-offset_bottom = 100.0
-grow_horizontal = 2
-grow_vertical = 2
-texture = ExtResource("2_rvslj")
-
 [node name="NotebookUI" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -74,7 +64,28 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 1, 1, 0)
+
+[node name="NotebookTexture" type="TextureRect" parent="NotebookUI/NotebookBase"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_0bbpv")
+
+[node name="TextureRect" type="TextureRect" parent="NotebookUI/NotebookBase"]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 100.0
+offset_right = 920.0
+offset_bottom = -100.0
+grow_vertical = 0
+texture = ExtResource("3_rarhs")
+expand_mode = 5
+stretch_mode = 4
 
 [node name="ContentMargin" type="MarginContainer" parent="NotebookUI/NotebookBase"]
 layout_mode = 1
@@ -100,7 +111,8 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_fonts/font = ExtResource("font_handwritten")
+theme_override_font_sizes/font_size = 48
 text = "SLASHER MANAGER"
 vertical_alignment = 1
 
@@ -110,15 +122,17 @@ layout_mode = 2
 [node name="ScreamLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0, 0, 1)
-theme_override_font_sizes/font_size = 32
-text = "Vrisci: 0"
+theme_override_fonts/font = ExtResource("font_typewriter")
+theme_override_font_sizes/font_size = 42
+text = "Screams: 0"
 horizontal_alignment = 2
 
 [node name="SPS" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
-theme_override_font_sizes/font_size = 16
-text = "+0/sek"
+theme_override_fonts/font = ExtResource("font_typewriter")
+theme_override_font_sizes/font_size = 24
+text = "DPS: 0"
 horizontal_alignment = 2
 
 [node name="PageSplit" type="HBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox"]
@@ -135,7 +149,8 @@ theme_override_constants/separation = 10
 [node name="MapLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_fonts/font = ExtResource("font_handwritten")
+theme_override_font_sizes/font_size = 24
 text = "HUNT AREA (2/3)"
 horizontal_alignment = 1
 
@@ -173,13 +188,15 @@ alignment = 1
 [node name="NameLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("font_handwritten")
 theme_override_font_sizes/font_size = 24
 text = "TARGET NAME"
 
 [node name="FlavorLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_fonts/font = ExtResource("font_typewriter")
+theme_override_font_sizes/font_size = 16
 text = "Flavor text goes here..."
 autowrap_mode = 3
 
@@ -199,8 +216,9 @@ theme_override_constants/separation = 10
 [node name="ShopLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
-theme_override_font_sizes/font_size = 20
-text = "SHOP (1/3)"
+theme_override_fonts/font = ExtResource("font_handwritten")
+theme_override_font_sizes/font_size = 28
+text = "UPGRADES"
 horizontal_alignment = 1
 
 [node name="UpgradeScroll" type="ScrollContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage"]

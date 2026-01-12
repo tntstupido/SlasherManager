@@ -63,7 +63,7 @@ var upgrade_defs = {
 	},
 	"utility": {
 		"title": "Piano Wire",
-		"desc": "Elegant and silent. Adds Auto Damage per second.",
+		"desc": "Silent and efficient. Adds Auto Damage per second.",
 		"base_cost": 50.0,
 		"cost_mult": 1.4,
 		"level": 0,
@@ -85,6 +85,8 @@ var upgrade_defs = {
 @onready var map_area = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea
 @onready var upgrade_list = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/UpgradeScroll/UpgradeList
 @onready var shop_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/ShopLabel
+@onready var title_label = $NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/Title
+@onready var map_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapLabel
 
 # Target Info UI
 @onready var target_info_bar = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar
@@ -97,9 +99,6 @@ var victim_scene = preload("res://scenes/VictimIcon.tscn")
 var floating_text_scene = preload("res://scenes/FloatingText.tscn")
 var red_x_scene = preload("res://scenes/RedX.tscn")
 
-# Font references
-var font_handwritten = load("res://assets/fonts/Patrick_Hand/PatrickHand-Regular.ttf")
-var font_typewriter = load("res://assets/fonts/Special_Elite/SpecialElite-Regular.ttf")
 var ShopItemButton = load("res://src/ShopItemButton.gd")
 
 var shop_nodes = {}
@@ -108,8 +107,6 @@ func _ready():
 	# Initial UI state for target bar
 	target_info_bar.hide()
 	shop_label.text = "UPGRADES"
-	shop_label.add_theme_font_override("font", font_handwritten)
-	shop_label.add_theme_font_size_override("font_size", 32)
 	
 	setup_shop()
 	
@@ -208,13 +205,21 @@ func create_shop_item(id: String, data: Dictionary) -> Button:
 	icon_container.add_child(icon)
 
 	# 2. Info Box Section (Bottom, inside the box)
-	var info_margin = MarginContainer.new()
+	var info_margin = PanelContainer.new()
 	info_margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	# Align margins with the drawn border
 	info_margin.add_theme_constant_override("margin_left", 12)
 	info_margin.add_theme_constant_override("margin_top", 12)
 	info_margin.add_theme_constant_override("margin_right", 12)
 	info_margin.add_theme_constant_override("margin_bottom", 12)
+	# Add semi-transparent background
+	var bg_style = StyleBoxFlat.new()
+	bg_style.bg_color = Color(0.95, 0.93, 0.85, 0.95) # Semi-transparent aged paper
+	bg_style.corner_radius_top_left = 3
+	bg_style.corner_radius_top_right = 3
+	bg_style.corner_radius_bottom_left = 3
+	bg_style.corner_radius_bottom_right = 3
+	info_margin.add_theme_stylebox_override("panel", bg_style)
 	# Link for dynamic sizing
 	btn.target_text_container = info_margin
 	main_vbox.add_child(info_margin)
@@ -227,9 +232,9 @@ func create_shop_item(id: String, data: Dictionary) -> Button:
 	var title = Label.new()
 	title.text = data.title
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(0.1, 0.1, 0.3))
+	title.add_theme_color_override("font_color", Color(0, 0, 0.2))
 	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_font_override("font", font_handwritten)
+	title.add_theme_font_override("font", load("res://assets/fonts/Patrick_Hand/PatrickHand-Regular.ttf"))
 	content_vbox.add_child(title)
 	
 	# 3. Description
@@ -237,10 +242,9 @@ func create_shop_item(id: String, data: Dictionary) -> Button:
 	desc.text = data.desc
 	desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_color_override("font_color", Color(0.2, 0.2, 0.4))
-	desc.add_theme_font_size_override("font_size", 18) # Increased size
-	desc.add_theme_font_override("font", font_typewriter)
-	# Removed size_flags_vertical = EXPAND_FILL to prevent pushing cost down
+	desc.add_theme_color_override("font_color", Color(0, 0, 0.1))
+	desc.add_theme_font_size_override("font_size", 18)
+	desc.add_theme_font_override("font", load("res://assets/fonts/Special_Elite/SpecialElite-Regular.ttf"))
 	content_vbox.add_child(desc)
 	
 	# 4. Cost (Bottom)
@@ -248,9 +252,9 @@ func create_shop_item(id: String, data: Dictionary) -> Button:
 	cost_lbl.name = "CostLabel"
 	cost_lbl.text = "Cost: " + str(int(data.base_cost))
 	cost_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	cost_lbl.add_theme_color_override("font_color", Color(0.1, 0.1, 0.3))
+	cost_lbl.add_theme_color_override("font_color", Color(0, 0, 0.15))
 	cost_lbl.add_theme_font_size_override("font_size", 24)
-	cost_lbl.add_theme_font_override("font", font_typewriter)
+	cost_lbl.add_theme_font_override("font", load("res://assets/fonts/Special_Elite/SpecialElite-Regular.ttf"))
 	content_vbox.add_child(cost_lbl)
 	
 	# Remove old tape logic (now handled by ShopItemButton)
@@ -430,8 +434,6 @@ func update_ui():
 
 func update_ui_labels():
 	scream_label.text = "Screams: %d" % int(screams)
-	scream_label.add_theme_font_override("font", font_typewriter)
-	scream_label.add_theme_font_size_override("font_size", 42)
 
 	var kills_remaining = kills_until_boss - kills_count
 	var dps_text = "DPS: %.1f" % auto_damage
@@ -441,5 +443,3 @@ func update_ui_labels():
 		dps_text += " | BOSS ACTIVE!"
 
 	sps_label.text = dps_text
-	sps_label.add_theme_font_override("font", font_typewriter)
-	sps_label.add_theme_font_size_override("font_size", 24)

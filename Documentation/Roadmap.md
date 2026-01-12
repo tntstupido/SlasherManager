@@ -39,6 +39,12 @@ Fokus: Audio-vizuelni doživljaj (Ink & Paper stil).
 - [ ] **Audio Dizajn:**
     - Zvukovi škrabanja olovke, cepanja papira, vrisci.
     - Ambijentalna muzika (šuma, vetar).
+- [x] **Tipografija:**
+    - [x] Implementacija Patrick_Hand fonta za naslove
+    - [x] Implementacija Special_Elite fonta za tekst i brojeve
+    - [x] Setovanje fontova u Main.tscn (statički elementi)
+    - [x] Setovanje fontova u Main.gd (dinamički elementi)
+    - [x] Poboljšanje čitljivosti teksta u upgrade karticama
 - [ ] **Vizuelni Efekti (Juice):**
     - [ ] Animacije pri kupovini apgrejda (pulsiranje, "pečatiranje").
     - [ ] Animacija okretanja stranice.

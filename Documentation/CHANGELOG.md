@@ -1,5 +1,52 @@
 # Slasher Manager - Changelog
 
+## [v0.3.1] - 2026-01-11 - Typography & UI Polish Update
+
+### Added - Font System Implementation
+- **Typography System**
+  - Integrated Patrick_Hand (handwritten) font for headers and titles
+  - Integrated Special_Elite (typewriter) font for body text and numbers
+  - Font assets available in `assets/fonts/` directory
+
+- **Static UI Fonts (Main.tscn)**
+  - Game Title: "SLASHER MANAGER" - Patrick_Hand, Size 48
+  - Shop Label: "UPGRADES" - Patrick_Hand, Size 28
+  - Map Label: "HUNT AREA (2/3)" - Patrick_Hand, Size 24
+  - Screams Counter: Special_Elite, Size 42
+  - DPS/Stats: Special_Elite, Size 24
+  - Target Info: Name (Patrick_Hand, Size 24), Flavor (Special_Elite, Size 16)
+
+- **Dynamic UI Fonts (Main.gd)**
+  - Shop Item Titles: Patrick_Hand, Size 28
+  - Shop Item Descriptions: Special_Elite, Size 18
+  - Shop Item Costs: Special_Elite, Size 24
+
+### Improved - Upgrade Cards Visuals
+- **Background Enhancement**
+  - Added semi-transparent background to upgrade info boxes using PanelContainer
+  - Color: Semi-transparent aged paper (0.95, 0.93, 0.85, 0.95)
+  - Corner radius: 3px for polished appearance
+  - Improves text readability while maintaining "Ink & Paper" aesthetic
+
+- **Text Contrast Improvements**
+  - Darkened text colors for better readability:
+    - Titles: Color(0, 0, 0.2) - dark navy blue
+    - Descriptions: Color(0, 0, 0.1) - very dark blue, almost black
+    - Costs: Color(0, 0, 0.15) - dark blue
+
+### Fixed - Text Issues
+- Corrected "Piano Wire" description typo
+  - Changed from: "Elegant and silent"
+  - Changed to: "Silent and efficient"
+
+### Technical Notes
+- Fonts set in Main.tscn for static elements (proper Godot approach)
+- Fonts loaded dynamically in Main.gd for programmatically created elements
+- PanelContainer used for backgrounds (prevents layout disruption)
+- Maintains vintage newspaper/police report aesthetic per ArtGuide specifications
+
+---
+
 ## [v0.3.0] - 2026-01-11 - Boss Fight Update
 
 ### Added - Phase 3: Boss Fight System
