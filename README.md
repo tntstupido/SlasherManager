@@ -23,7 +23,18 @@ The game features a distinctive **"Ink & Paper"** aesthetic:
 - Vintage newspaper/police report feel for UI elements
 - Bright RED used sparingly for blood and dramatic effects
 
-## ✨ Current Features (v0.3.1)
+## ✨ Current Features (v0.4.0)
+
+### Level Progression System
+- ✅ **Two-level game world** with unique environments:
+  - **Level 1: LAKE CAMP** - Starting area, 3 bosses required
+  - **Level 2: SUBURBS** - Unlocks after Level 1, 5 bosses required
+  - Dynamic map texture swapping between levels
+- ✅ **Level advancement** based on boss defeats
+- ✅ **Page turn animation** with realistic shader effects
+- ✅ **Level-appropriate victim spawning** (unlocks new victim types)
+- ✅ **Difficulty scaling** (Level 2 has 1.2x difficulty multiplier)
+- ✅ **Real-time boss counter** display on map
 
 ### Core Mechanics
 - ✅ Dynamic victim spawning with click interactions
@@ -141,6 +152,6 @@ This project is for educational and entertainment purposes.
 
 ---
 
-**Version**: v0.3.1  
-**Last Updated**: January 11, 2026  
+**Version**: v0.4.0  
+**Last Updated**: January 14, 2026  
 **Status**: Active Development

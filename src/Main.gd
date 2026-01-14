@@ -5,10 +5,32 @@ var screams: float = 0.0
 var click_damage: float = 1.0
 var auto_damage: float = 0.0
 
+# Level System
+var current_level: int = 1
+var bosses_defeated_in_level: int = 0
+
+var level_defs = {
+	1: {
+		"name": "LAKE CAMP",
+		"map_texture": "res://assets/Environment/level1_map_01.png",
+		"bosses_required": 3,  # Bosses to defeat to advance
+		"difficulty_mult": 1.0,
+		"victims_unlocked": ["TOURIST", "JOCK", "CHEERLEADER"]
+	},
+	2: {
+		"name": "SUBURBS",
+		"map_texture": "res://assets/Environment/suburban_map.png",
+		"bosses_required": 5,
+		"difficulty_mult": 1.2,
+		"victims_unlocked": ["TOURIST", "JOCK", "CHEERLEADER", "GEEK", "INFLUENCER"]
+	}
+}
+
 # Boss tracking
 var kills_count: int = 0
 var kills_until_boss: int = 10  # Boss appears every 10 kills
 var boss_active: bool = false
+var processed_boss_elims = []  # Track which boss eliminations have been processed
 
 # Victim Types (HP, Reward, Portrait, Flavor)
 var victim_defs = {
@@ -88,6 +110,12 @@ var upgrade_defs = {
 @onready var title_label = $NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/Title
 @onready var map_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapLabel
 
+# Animation references
+@onready var notebook_texture = $NotebookUI/NotebookBase/NotebookTexture
+@onready var map_texture = $NotebookUI/NotebookBase/MapTexture
+@onready var notebook_base = $NotebookUI/NotebookBase
+@onready var notebook_ui = $NotebookUI
+
 # Target Info UI
 @onready var target_info_bar = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar
 @onready var target_name_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox/NameLabel
@@ -109,6 +137,9 @@ func _ready():
 	shop_label.text = "UPGRADES"
 	
 	setup_shop()
+	
+	# Initialize level UI
+	update_level_ui()
 	
 	# Wait for a frame to ensure UI is laid out before spawning
 	await get_tree().process_frame
@@ -263,6 +294,12 @@ func create_shop_item(id: String, data: Dictionary) -> Button:
 	
 	return btn
 
+func _input(event):
+	# DEBUG: Press F2 to manually trigger page turn animation
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F2:
+		print("DEBUG: F2 pressed - triggering page turn animation")
+		animate_level_transition()
+
 func _process(delta):
 	# Auto Damage Logic (Rusty Wire)
 	if auto_damage > 0:
@@ -302,6 +339,8 @@ func spawn_victim():
 	var is_boss = data.get("is_boss", false)
 	if is_boss:
 		victim.set_meta("is_boss", true)
+		# Give each boss a unique ID to track processing
+		victim.set_meta("boss_id", randi())
 		# Make boss larger - increase both scale and minimum size
 		victim.custom_minimum_size = Vector2(600, 600)  # 1.5x larger than 400
 		victim.scale = Vector2(1.0, 1.0)  # Keep scale at 1.0 since we're using custom_minimum_size
@@ -368,17 +407,32 @@ func _on_victim_eliminated(points):
 	# Track kills and check if it was a boss
 	kills_count += 1
 
-	# Check if the eliminated victim was the boss
+	# Check if eliminated victim was a boss - use unique ID tracking
 	var eliminated_was_boss = false
+	var boss_id = null
 	for child in map_area.get_children():
-		if child.has_meta("is_boss") and child.is_eliminated:
+		if child.has_meta("is_boss") and child.is_eliminated and child.has_meta("boss_id"):
 			eliminated_was_boss = true
+			boss_id = child.get_meta("boss_id")
 			break
 
-	if eliminated_was_boss:
-		boss_active = false
-		kills_count = 0  # Reset kill counter after boss is defeated
-		spawn_floating_text("BOSS DEFEATED!", Vector2(map_area.size.x / 2, 150), Color(1, 0.8, 0))
+	if eliminated_was_boss and boss_id != null:
+		# Only process this boss elimination if we haven't processed it before
+		if not boss_id in processed_boss_elims:
+			processed_boss_elims.append(boss_id)
+			boss_active = false
+			kills_count = 0  # Reset kill counter after boss is defeated
+			spawn_floating_text("BOSS DEFEATED!", Vector2(map_area.size.x / 2, 150), Color(1, 0.8, 0))
+			
+			# Track bosses defeated for level progression
+			bosses_defeated_in_level += 1
+			
+			# Check if we should advance to next level
+			var level_advanced = check_level_advance()
+			
+			# If level advanced, don't spawn victim yet (will happen after transition)
+			if level_advanced:
+				return
 
 	update_ui()
 
@@ -415,6 +469,7 @@ func _on_upgrade_bought(id):
 
 func update_ui():
 	update_ui_labels()
+	update_level_ui()  # Update boss progress counter
 	
 	# Update buy buttons status
 	for id in upgrade_defs.keys():
@@ -443,3 +498,157 @@ func update_ui_labels():
 		dps_text += " | BOSS ACTIVE!"
 
 	sps_label.text = dps_text
+
+# Level System Functions
+
+func _set_shader_progress(shader_material: ShaderMaterial, progress: float):
+	"""Helper function to animate shader parameter"""
+	if shader_material:
+		shader_material.set_shader_parameter("turn_progress", progress)
+
+func change_map_texture(new_texture_path: String):
+	"""Swap the map texture to a new level's map"""
+	var new_texture = load(new_texture_path)
+	if new_texture:
+		map_texture.texture = new_texture
+
+func animate_level_transition():
+	"""Animate the paper fold page turn effect with realistic page turning"""
+	print("DEBUG: animate_level_transition() called")
+	
+	# Disable input during animation
+	set_process_input(false)
+	
+	# Get NEXT level's data (the one we're transitioning TO)
+	var next_level = current_level + 1
+	
+	# Safety check - verify next level exists
+	if not level_defs.has(next_level):
+		push_error("Level %d not found in level_defs!" % next_level)
+		set_process_input(true)
+		return
+	
+	var next_level_data = level_defs[next_level]
+	var new_map_texture = next_level_data["map_texture"]
+	
+	print("DEBUG: Setting up shader")
+	# Apply page turn shader to notebook_texture (just the notebook image)
+	var original_material = notebook_texture.material
+	var page_shader = ShaderMaterial.new()
+	page_shader.shader = load("res://assets/page_turn.gdshader")
+	notebook_texture.material = page_shader
+	
+	# Store original notebook texture transform
+	var original_notebook_rotation = notebook_texture.rotation_degrees
+	var original_notebook_scale = notebook_texture.scale
+	var original_notebook_position = notebook_texture.position
+	
+	print("DEBUG: Starting tween")
+	
+	# Create tween and set to sequential mode
+	var tween = create_tween()
+	tween.set_parallel(false)
+	
+	print("DEBUG: Tween created")
+	
+	# Pause briefly before starting animation
+	tween.tween_interval(0.1)
+	
+	print("DEBUG: Starting OUT phase")
+	
+	# 1. Turn page OUT - shader and map fade (1.0s) - parallel operations
+	tween.set_parallel(true)  # Switch to parallel mode
+	tween.tween_method(func(progress): _set_shader_progress(page_shader, progress), 0.0, 1.0, 1.0).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(map_texture, "modulate:a", 0.0, 1.0).set_ease(Tween.EASE_IN_OUT)
+	tween.set_parallel(false)  # Switch back to sequential
+	tween.tween_interval(1.0)
+	
+	# 2. Swap texture and update level (instant via callback)
+	print("DEBUG: Queuing swap callback")
+	tween.tween_callback(_on_level_transition_middle.bind(new_map_texture, next_level))
+	
+	# 3. Turn page IN - shader and map fade (1.0s) - parallel operations
+	print("DEBUG: Starting IN phase")
+	tween.set_parallel(true)  # Switch to parallel mode
+	tween.tween_method(func(progress): _set_shader_progress(page_shader, progress), 1.0, 0.0, 1.0).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(map_texture, "modulate:a", 0.0, 1.0).set_ease(Tween.EASE_IN)
+	tween.set_parallel(false)  # Switch back to sequential
+	tween.tween_interval(1.0)
+	
+	# Remove shader with smooth color transition
+	print("DEBUG: Starting shader removal transition")
+	
+	# First, remove the shader (which is making the notebook darker)
+	tween.tween_callback(func():
+		notebook_texture.material = original_material  # Remove shader
+	)
+	tween.tween_interval(0.05)
+	
+	# Set starting color (darker from shader effect)
+	notebook_texture.modulate = Color(0.75, 0.75, 0.75, 1.0)
+	
+	# Now animate color back to normal
+	tween.tween_property(notebook_texture, "modulate", Color.WHITE, 0.4).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(0.4)
+	
+	# 4. Short pause for visual settling
+	print("DEBUG: Animation complete")
+	tween.tween_interval(0.1)
+	
+	# Re-enable input and spawn victim
+	print("DEBUG: Queuing cleanup callback")
+	tween.tween_callback(func(): 
+		print("DEBUG: Cleanup called")
+		set_process_input(true)
+		print("DEBUG: Animation complete, spawning victim")
+		spawn_victim()
+	)
+
+func _on_level_transition_middle(new_map_texture_path: String, next_level_num: int):
+	"""Called during transition to swap map and advance level"""
+	# Change map texture
+	change_map_texture(new_map_texture_path)
+	
+	# Advance level
+	current_level = next_level_num
+	bosses_defeated_in_level = 0
+	
+	# Show level announcement
+	var level_data = level_defs[current_level]
+	spawn_floating_text("LEVEL %d: %s!" % [current_level, level_data["name"]], 
+		Vector2(map_area.size.x / 2, 200), Color(1, 0.6, 0))
+	
+	# Update UI with new level
+	update_level_ui()
+
+func update_level_ui():
+	"""Update UI elements to reflect current level"""
+	var level_data = level_defs[current_level]
+	
+	# Update map label to show level name and progress
+	var bosses_required = level_data["bosses_required"]
+	var progress_text = "Level %d: %s (%d/%d bosses)" % [
+		current_level,
+		level_data["name"],
+		bosses_defeated_in_level,
+		bosses_required
+	]
+	map_label.text = progress_text
+
+func check_level_advance():
+	"""Check if player should advance to next level"""
+	var level_data = level_defs.get(current_level)
+	if level_data == null:
+		return false  # No more levels defined
+	
+	var bosses_required = level_data["bosses_required"]
+	
+	# Check if we've defeated enough bosses in this level
+	if bosses_defeated_in_level >= bosses_required:
+		# Check if there's a next level
+		if level_defs.has(current_level + 1):
+			# Trigger level transition animation
+			animate_level_transition()
+			return true
+	
+	return false

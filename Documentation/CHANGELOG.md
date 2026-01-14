@@ -1,5 +1,80 @@
 # Slasher Manager - Changelog
 
+## [v0.4.0] - 2026-01-14 - Level System Implementation
+
+### Added - Phase 3: Level Progression System
+- **Two-Level Game World**
+  - Level 1: LAKE CAMP (starting area)
+  - Level 2: SUBURBS (unlocks after completing Level 1)
+  - Dynamic map texture swapping between levels
+  
+- **Level Advancement System**
+  - Boss defeat tracking (Level 1: 3 bosses, Level 2: 5 bosses)
+  - Level transition automatically triggers when boss requirement is met
+  - Boss counter resets on level advancement
+  
+- **Page Turn Animation**
+  - Realistic page curl shader with shadow effects
+  - Smooth fade transitions for map and notebook
+  - Shader-driven visual effects (shadow movement, edge highlights)
+  - Total animation time: ~2.6 seconds
+  - F2 debug key for manual testing
+
+- **New Level Features**
+  - Level 2 difficulty scaling (1.2x multiplier)
+  - New victim types unlocked in Level 2:
+    - GEEK (4 HP, 20 screams)
+    - INFLUENCER (8 HP, 40 screams)
+  - Level 1: TOURIST, JOCK, CHEERLEADER (3 types)
+  - Level 2: TOURIST, JOCK, CHEERLEADER, GEEK, INFLUENCER (5 types)
+
+### Improved - UI Updates
+- **Level Display**
+  - Map label shows: "Level X: LEVEL_NAME (Y/Z bosses)"
+  - Dynamic boss counter updates in real-time
+  - Floating text announcement on level advancement: "LEVEL 2: SUBURBS!"
+
+- **Victim Spawning**
+  - Level-appropriate victim pools
+  - Only unlocked victim types spawn in current level
+  - Maintains balance while increasing variety
+
+### Technical Implementation
+- **Level Definition System**
+  - `level_defs` dictionary with level data structure
+  - Configurable: map texture, bosses required, difficulty, unlocked victims
+  - Easy to extend for additional levels
+
+- **Boss Tracking**
+  - Unique boss ID system prevents duplicate processing
+  - `processed_boss_elims` array tracks defeated bosses
+  - Clean separation of victim elimination and level advancement logic
+
+- **Animation System**
+  - Custom page turn shader (GLSL fragment shader)
+  - Tween-based sequential animation with parallel phases
+  - Shader removal with smooth color transition
+  - Comprehensive debug logging
+
+### Files Added/Modified
+- **New Files:**
+  - `assets/page_turn.gdshader` - Page curl shader
+  - `assets/Environment/suburban_map.png` - Level 2 map
+  
+- **Modified:**
+  - `src/Main.gd` - Level system, animation, boss tracking
+  - `scenes/Main.tscn` - NotebookTexture, MapTexture nodes
+  
+- **Documentation:**
+  - `Documentation/Roadmap.md` - Updated with revision note
+  - `Documentation/CHANGELOG.md` - This entry
+
+### Known Issues
+- Page turn animation works but needs future polish (marked in Roadmap)
+- Shader removal timing functional but could be smoother
+
+---
+
 ## [v0.3.1] - 2026-01-11 - Typography & UI Polish Update
 
 ### Added - Font System Implementation

@@ -29,10 +29,10 @@ Fokus: Dugoročni ciljevi i raznovrsnost.
     - [x] Veća od ostalih žrtava (600x600 umesto 400x400).
     - [x] Vizuelni efekti: crvenkasti ton, upozoravajuće poruke.
     - [x] Nagrada: 500 vrisaka.
-- [ ] **Novi Nivoi:**
-    - Animacija "okretanja stranice".
-    - Prelazak sa "Kampa na jezeru" na "Predgrađe".
-- [ ] **Unlockables:** Otključavanje novih tipova žrtava kroz igru.
+- [x] **Novi Nivoi:**
+    - [x] Animacija "okretanja stranice". ⚠️ **NOTE: Requires revision - current implementation works but needs polish**
+    - [x] Prelazak sa "Kampa na jezeru" na "Predgrađe".
+- [x] **Unlockables:** Otključavanje novih tipova žrtava kroz igru.
 
 ## Faza 4: Poliranje i "Juice"
 Fokus: Audio-vizuelni doživljaj (Ink & Paper stil).
