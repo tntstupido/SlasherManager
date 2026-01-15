@@ -42,6 +42,8 @@ The game features a distinctive **"Ink & Paper"** aesthetic:
 - ✅ Visual HP feedback system
 - ✅ Resource system (Screams currency)
 - ✅ Floating damage text and elimination effects
+- ✅ Ink/blood splatter on eliminations
+- ✅ Screen shake on kill for impact
 
 ### Economy & Shop
 - ✅ Upgrade system with three categories:
@@ -52,10 +54,10 @@ The game features a distinctive **"Ink & Paper"** aesthetic:
 - ✅ Procedural "paper scrap" shop aesthetic
 
 ### Boss System
-- ✅ **"The Final Girl"** boss character
+- ✅ **Boss pool per level**
+  - Multiple bosses tied to the current map
   - Appears every 10 kills
-  - 50 HP with 500 scream reward
-  - Fights back - removes 50 screams every 3 seconds
+  - Fights back - removes screams every 3 seconds
   - Larger visual size (1.5x regular victims)
 - ✅ Warning and victory messages
 - ✅ Strategic challenge balancing
@@ -66,6 +68,7 @@ The game features a distinctive **"Ink & Paper"** aesthetic:
   - **Special_Elite** - Typewriter body text and numbers
 - ✅ Semi-transparent backgrounds for improved readability
 - ✅ Professional "Ink & Paper" aesthetic throughout
+- ✅ Screams label pulse on gain
 
 ## 🚀 Getting Started
 
@@ -99,13 +102,14 @@ Comprehensive documentation is available in the `Documentation/` folder:
 - **[ArtGuide.md](Documentation/ArtGuide.md)** - Visual style guidelines and asset specifications
 - **[TechnicalDocs/](Documentation/TechnicalDocs/)** - In-depth technical documentation:
   - [Boss Fight System](Documentation/TechnicalDocs/BossFight.md)
+  - [Juice Effects](Documentation/TechnicalDocs/Effects.md)
 
 ## 🗺️ Roadmap
 
 ### Phase 4: Polishing & "Juice" (In Progress)
 - [ ] Audio design (sound effects, ambient music)
 - [x] Typography system implementation ✅
-- [ ] Visual effects (screen shake, particles, animations)
+- [x] Visual effects (screen shake, particles) ✅
 - [ ] Page-turning animations
 
 ### Phase 3: Progression & Content

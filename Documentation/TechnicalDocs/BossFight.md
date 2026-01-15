@@ -1,26 +1,25 @@
 # Technical Documentation: Boss Fight System
 
 ## Overview
-The Boss Fight system implements a challenging encounter with "The Final Girl" - a special enemy that appears periodically and fights back against the player.
+The Boss Fight system implements challenging encounters with level-specific bosses that appear periodically and fight back against the player.
 
 ## Core Components
 
 ### 1. Boss Definition (Main.gd)
-Located in `victim_defs` dictionary:
+Located in `victim_defs` dictionary. Boss pools are defined per level in `level_defs["bosses"]`.
 
 ```gdscript
-"FINAL_GIRL": {
-    "hp": 50.0,
-    "reward": 500.0,
-    "icon": "res://assets/Characters/final_girl.png",
-    "flavor": "She's been through hell... and she's not going down easy.",
+"THE RANGER": {
+    "hp": 55.0,
+    "reward": 520.0,
+    "icon": "res://assets/Characters/the_ranger_boss.png",
+    "flavor": "Knows every trail. Doesn't miss a single step.",
     "is_boss": true
 }
 ```
 
 **Stats:**
-- **HP:** 50 (vs. 2-15 for regular victims)
-- **Reward:** 500 screams (vs. 10-75 for regular victims)
+- **HP/Reward:** Vary per boss and are scaled by level difficulty multiplier
 - **Special Flag:** `is_boss: true` identifies this as a boss enemy
 
 ### 2. Boss Tracking Variables
@@ -36,9 +35,9 @@ var boss_active: bool = false         # Prevents multiple bosses
 **Spawn Trigger:**
 ```gdscript
 if kills_count >= kills_until_boss and not boss_active:
-    type_name = "FINAL_GIRL"
+    type_name = boss_pool[randi() % boss_pool.size()]
     boss_active = true
-    spawn_floating_text("THE FINAL GIRL!", Vector2(map_area.size.x / 2, 100), Color(1, 0, 0))
+    spawn_floating_text("BOSS: %s!" % type_name, Vector2(map_area.size.x / 2, 100), Color(1, 0, 0))
 ```
 
 **Visual Modifications:**
@@ -126,7 +125,7 @@ elif boss_active:
 ### Risk vs. Reward
 - **High HP:** Requires sustained clicking or high DPS upgrades
 - **Resource Drain:** -50 screams every 3 seconds = -16.67 screams/sec
-- **High Reward:** 500 screams reward compensates for difficulty
+- **High Reward:** Reward varies by boss and level difficulty
 - **Cycle Reset:** Kill counter resets, creating predictable intervals
 
 ### Difficulty Scaling

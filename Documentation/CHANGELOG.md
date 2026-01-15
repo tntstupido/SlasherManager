@@ -1,5 +1,46 @@
 # Slasher Manager - Changelog
 
+## [Unreleased] - Page Turn & Level UX Updates
+
+### Added
+- **Notebook Underlay**
+  - New background layer beneath the page-turn animation to simulate a second page.
+- **Level Name Label**
+  - Dedicated label above the map showing current level name (e.g., "LEVEL 1: LAKE CAMP").
+- **Level-specific Boss Pools**
+  - `level_defs` now supports a `bosses` list per level (ready for unique bosses per map).
+- **Suburbs Victim Set**
+  - New SUBURBS victim archetypes (NEIGHBOR, MAILMAN, BABYSITTER, HOUSEWIFE, JOGGER, SOCCER_DAD).
+- **Juice Effects**
+  - Screen shake on elimination
+  - Ink/blood splatter on elimination
+  - Screams label pulse on gain
+
+### Changed
+- **Page Turn Animation**
+  - Shader applied to the viewport so the full page (map + UI) animates as one layer.
+  - Single-phase turn (no "return" phase) for a more realistic page flip.
+  - Page turn direction updated to curl right-to-left (notebook-style).
+- **Victim Spawning**
+  - Spawn pool now uses `victims_unlocked` for the current level.
+  - `difficulty_mult` scales HP and reward for regular victims and bosses.
+- **Elimination Feedback**
+  - Removed large red X overlay in favor of splatter-only feedback.
+
+### Fixed
+- **Map Visibility on Level Transition**
+  - Restored map alpha after level swap to avoid blank/transparent maps.
+- **Viewport Sizing Stability**
+  - Reverted manual SubViewport resizing to prevent layout instability.
+
+### Files Modified
+- `src/Main.gd` - level spawn logic, difficulty scaling, level label, transition fixes
+- `scenes/Main.tscn` - viewport wiring, notebook underlay, level name label
+- `assets/page_turn.gdshader` - updated page-turn direction and curl shaping
+- `src/BloodSplatter.gd`, `scenes/BloodSplatter.tscn` - splatter feedback
+- `scenes/VictimIcon.tscn` - click tween changes + elimination signal updates
+- `Documentation/TechnicalDocs/Effects.md` - juice effects overview
+
 ## [v0.4.0] - 2026-01-14 - Level System Implementation
 
 ### Added - Phase 3: Level Progression System

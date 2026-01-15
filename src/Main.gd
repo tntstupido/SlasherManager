@@ -15,14 +15,16 @@ var level_defs = {
 		"map_texture": "res://assets/Environment/level1_map_01.png",
 		"bosses_required": 3,  # Bosses to defeat to advance
 		"difficulty_mult": 1.0,
-		"victims_unlocked": ["TOURIST", "JOCK", "CHEERLEADER"]
+		"victims_unlocked": ["TOURIST", "JOCK", "CHEERLEADER"],
+		"bosses": ["FINAL_GIRL", "THE RANGER", "THE COUNSELOR"]
 	},
 	2: {
 		"name": "SUBURBS",
 		"map_texture": "res://assets/Environment/suburban_map.png",
 		"bosses_required": 5,
 		"difficulty_mult": 1.2,
-		"victims_unlocked": ["TOURIST", "JOCK", "CHEERLEADER", "GEEK", "INFLUENCER"]
+		"victims_unlocked": ["NEIGHBOR", "MAILMAN", "BABYSITTER", "HOUSEWIFE", "JOGGER", "SOCCER_DAD"],
+		"bosses": ["NEIGHBORHOOD WATCH CAPTAIN", "REALESTATE MOM", "THE FINAL GIRL"]
 	}
 }
 
@@ -31,6 +33,12 @@ var kills_count: int = 0
 var kills_until_boss: int = 10  # Boss appears every 10 kills
 var boss_active: bool = false
 var processed_boss_elims = []  # Track which boss eliminations have been processed
+var is_transitioning: bool = false
+var base_spawn_count: int = 3
+var last_screams: float = 0.0
+var shake_tween: Tween
+var notebook_ui_original_pos: Vector2
+var rng = RandomNumberGenerator.new()
 
 # Victim Types (HP, Reward, Portrait, Flavor)
 var victim_defs = {
@@ -70,6 +78,77 @@ var victim_defs = {
 		"icon": "res://assets/Characters/final_girl.png",
 		"flavor": "She's been through hell... and she's not going down easy.",
 		"is_boss": true
+	},
+	"THE RANGER": {
+		"hp": 55.0,
+		"reward": 520.0,
+		"icon": "res://assets/Characters/the_ranger_boss.png",
+		"flavor": "Knows every trail. Doesn't miss a single step.",
+		"is_boss": true
+	},
+	"THE COUNSELOR": {
+		"hp": 45.0,
+		"reward": 480.0,
+		"icon": "res://assets/Characters/the_counselor_boss.png",
+		"flavor": "The one who always survives the first act.",
+		"is_boss": true
+	},
+	"NEIGHBOR": {
+		"hp": 6.0,
+		"reward": 30.0,
+		"icon": "res://assets/Characters/level_2/neighbor.png",
+		"flavor": "Always watching through the blinds. Never reports anything."
+	},
+	"MAILMAN": {
+		"hp": 7.0,
+		"reward": 35.0,
+		"icon": "res://assets/Characters/level_2/mailman.png",
+		"flavor": "Brought the bills. And his own epitaph."
+	},
+	"BABYSITTER": {
+		"hp": 5.0,
+		"reward": 25.0,
+		"icon": "res://assets/Characters/level_2/babysitter.png",
+		"flavor": "Thinks she's in a rom-com. She's not."
+	},
+	"HOUSEWIFE": {
+		"hp": 9.0,
+		"reward": 45.0,
+		"icon": "res://assets/Characters/level_2/housewife.png",
+		"flavor": "Keeps the cul-de-sac spotless. You handle the mess."
+	},
+	"JOGGER": {
+		"hp": 4.0,
+		"reward": 20.0,
+		"icon": "res://assets/Characters/level_2/jogger.png",
+		"flavor": "Running for health. Terrible timing."
+	},
+	"SOCCER_DAD": {
+		"hp": 12.0,
+		"reward": 60.0,
+		"icon": "res://assets/Characters/level_2/soccer_dad.png",
+		"flavor": "Minivan, whistle, clipboard. Now just a score."
+	},
+	"NEIGHBORHOOD WATCH CAPTAIN": {
+		"hp": 60.0,
+		"reward": 540.0,
+		"icon": "res://assets/Characters/level_2/the_neighborhood_watch_captain_boss.png",
+		"flavor": "Walkie-talkie, flashlight, and a hero complex.",
+		"is_boss": true
+	},
+	"REALESTATE MOM": {
+		"hp": 55.0,
+		"reward": 520.0,
+		"icon": "res://assets/Characters/level_2/the_realestate_mom_boss.png",
+		"flavor": "Perfect smile. Ice-cold eyes.",
+		"is_boss": true
+	},
+	"THE FINAL GIRL": {
+		"hp": 70.0,
+		"reward": 650.0,
+		"icon": "res://assets/Characters/level_2/the_final_girl_boss.png",
+		"flavor": "The sequel version. Even tougher.",
+		"is_boss": true
 	}
 }
 
@@ -102,30 +181,32 @@ var upgrade_defs = {
 }
 
 # UI reference
-@onready var scream_label = $NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay/ScreamLabel
-@onready var sps_label = $NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay/SPS
-@onready var map_area = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea
-@onready var upgrade_list = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/UpgradeScroll/UpgradeList
-@onready var shop_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/ShopLabel
-@onready var title_label = $NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/Title
-@onready var map_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapLabel
+@onready var scream_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay/ScreamLabel
+@onready var sps_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay/SPS
+@onready var map_area = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea
+@onready var upgrade_list = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/UpgradeScroll/UpgradeList
+@onready var shop_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/ShopLabel
+@onready var title_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/TopMargin/Title
+@onready var level_name_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/LevelNameLabel
+@onready var map_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapLabel
 
 # Animation references
-@onready var notebook_texture = $NotebookUI/NotebookBase/NotebookTexture
-@onready var map_texture = $NotebookUI/NotebookBase/MapTexture
-@onready var notebook_base = $NotebookUI/NotebookBase
+@onready var notebook_viewport_container = $NotebookUI/NotebookViewportContainer
+@onready var notebook_texture = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/NotebookTexture
+@onready var map_texture = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/MapTexture
+@onready var notebook_base = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase
 @onready var notebook_ui = $NotebookUI
 
 # Target Info UI
-@onready var target_info_bar = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar
-@onready var target_name_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox/NameLabel
-@onready var target_flavor_label = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox/FlavorLabel
-@onready var target_hp_bar = $NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox/HPBar
+@onready var target_info_bar = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar
+@onready var target_name_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox/NameLabel
+@onready var target_flavor_label = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox/FlavorLabel
+@onready var target_hp_bar = $NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox/HPBar
 
 # Scene references
 var victim_scene = preload("res://scenes/VictimIcon.tscn")
 var floating_text_scene = preload("res://scenes/FloatingText.tscn")
-var red_x_scene = preload("res://scenes/RedX.tscn")
+var blood_splatter_scene = preload("res://scenes/BloodSplatter.tscn")
 
 var ShopItemButton = load("res://src/ShopItemButton.gd")
 
@@ -143,9 +224,11 @@ func _ready():
 	
 	# Wait for a frame to ensure UI is laid out before spawning
 	await get_tree().process_frame
+	notebook_ui_original_pos = notebook_ui.position
+	_update_scream_label_pivot()
 	
 	# Initial spawn
-	for i in range(3):
+	for i in range(base_spawn_count):
 		spawn_victim()
 	
 	update_ui()
@@ -309,31 +392,48 @@ func _process(delta):
 	
 	update_ui_labels()
 
+
 func spawn_victim():
 	var victim = victim_scene.instantiate()
 	map_area.add_child(victim)
 
 	var type_name: String
 	var data: Dictionary
+	var level_data = level_defs.get(current_level, null)
+	var difficulty_mult = 1.0
+	if level_data:
+		difficulty_mult = float(level_data.get("difficulty_mult", 1.0))
 
 	# Check if it's time for a boss spawn
 	if kills_count >= kills_until_boss and not boss_active:
-		type_name = "FINAL_GIRL"
+		var boss_pool = []
+		if level_data and level_data.has("bosses"):
+			for boss_name in level_data["bosses"]:
+				if victim_defs.has(boss_name) and victim_defs[boss_name].get("is_boss", false):
+					boss_pool.append(boss_name)
+		if boss_pool.is_empty():
+			boss_pool.append("FINAL_GIRL")
+		type_name = boss_pool[randi() % boss_pool.size()]
 		data = victim_defs[type_name]
 		boss_active = true
 		# Show warning message
-		spawn_floating_text("THE FINAL GIRL!", Vector2(map_area.size.x / 2, 100), Color(1, 0, 0))
+		spawn_floating_text("BOSS: %s!" % type_name, Vector2(map_area.size.x / 2, 100), Color(1, 0, 0))
 	else:
-		# Random regular victim (exclude FINAL_GIRL)
+		# Random regular victim from unlocked list
 		var regular_victims = []
-		for key in victim_defs.keys():
-			if not victim_defs[key].get("is_boss", false):
-				regular_victims.append(key)
+		if level_data and level_data.has("victims_unlocked"):
+			for key in level_data["victims_unlocked"]:
+				if victim_defs.has(key) and not victim_defs[key].get("is_boss", false):
+					regular_victims.append(key)
+		if regular_victims.is_empty():
+			for key in victim_defs.keys():
+				if not victim_defs[key].get("is_boss", false):
+					regular_victims.append(key)
 		type_name = regular_victims[randi() % regular_victims.size()]
 		data = victim_defs[type_name]
 
 	victim.setup(type_name, data["icon"], data["flavor"])
-	victim.setup_stats(data["hp"], data["reward"])
+	victim.setup_stats(data["hp"] * difficulty_mult, data["reward"] * difficulty_mult)
 
 	# Store boss flag on victim for special handling
 	var is_boss = data.get("is_boss", false)
@@ -383,9 +483,6 @@ func _on_victim_clicked(victim):
 	victim.take_damage(click_damage)
 	spawn_floating_text(str(int(click_damage)), victim.global_position)
 	
-	var slash = red_x_scene.instantiate()
-	map_area.add_child(slash)
-	slash.global_position = victim.global_position + (victim.size / 2)
 
 func _on_victim_targeted(data):
 	target_info_bar.show()
@@ -400,9 +497,18 @@ func _on_boss_attacks(damage):
 	spawn_floating_text("-%.0f" % damage, Vector2(map_area.size.x / 2, map_area.size.y / 2), Color(1, 0.3, 0.3))
 	update_ui()
 
-func _on_victim_eliminated(points):
+func _on_victim_eliminated(points, hit_pos, victim):
 	screams += points
-	spawn_floating_text("+%d" % int(points), get_global_mouse_position(), Color(1, 0, 0))
+	spawn_floating_text("+%d" % int(points), hit_pos, Color(1, 0, 0))
+	
+	var blood = blood_splatter_scene.instantiate()
+	blood.z_index = 100
+	blood.position = Vector2.ZERO
+	blood.size = victim.size
+	blood.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	victim.add_child(blood)
+	
+	shake_notebook()
 
 	# Track kills and check if it was a boss
 	kills_count += 1
@@ -489,6 +595,9 @@ func update_ui():
 
 func update_ui_labels():
 	scream_label.text = "Screams: %d" % int(screams)
+	if screams > last_screams:
+		pulse_label(scream_label)
+	last_screams = screams
 
 	var kills_remaining = kills_until_boss - kills_count
 	var dps_text = "DPS: %.1f" % auto_damage
@@ -498,6 +607,34 @@ func update_ui_labels():
 		dps_text += " | BOSS ACTIVE!"
 
 	sps_label.text = dps_text
+
+func pulse_label(label: Control):
+	if label == null:
+		return
+	var existing = label.get_meta("pulse_tween") if label.has_meta("pulse_tween") else null
+	if existing and existing.is_running():
+		existing.kill()
+	label.scale = Vector2.ONE
+	var tween = create_tween()
+	tween.tween_property(label, "scale", Vector2(1.08, 1.08), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	label.set_meta("pulse_tween", tween)
+
+func _update_scream_label_pivot():
+	if scream_label:
+		scream_label.pivot_offset = scream_label.size / 2.0
+
+func shake_notebook(intensity: float = 6.0, duration: float = 0.18):
+	if shake_tween and shake_tween.is_running():
+		shake_tween.kill()
+	notebook_ui.position = notebook_ui_original_pos
+	shake_tween = create_tween()
+	var steps = 6
+	var step_time = duration / float(steps)
+	for i in range(steps):
+		var offset = Vector2(rng.randf_range(-intensity, intensity), rng.randf_range(-intensity, intensity))
+		shake_tween.tween_property(notebook_ui, "position", notebook_ui_original_pos + offset, step_time)
+	shake_tween.tween_property(notebook_ui, "position", notebook_ui_original_pos, step_time)
 
 # Level System Functions
 
@@ -515,6 +652,9 @@ func change_map_texture(new_texture_path: String):
 func animate_level_transition():
 	"""Animate the paper fold page turn effect with realistic page turning"""
 	print("DEBUG: animate_level_transition() called")
+
+	if is_transitioning:
+		return
 	
 	# Disable input during animation
 	set_process_input(false)
@@ -527,21 +667,23 @@ func animate_level_transition():
 		push_error("Level %d not found in level_defs!" % next_level)
 		set_process_input(true)
 		return
+
+	is_transitioning = true
 	
 	var next_level_data = level_defs[next_level]
 	var new_map_texture = next_level_data["map_texture"]
 	
 	print("DEBUG: Setting up shader")
-	# Apply page turn shader to notebook_texture (just the notebook image)
-	var original_material = notebook_texture.material
+	# Apply page turn shader to the viewport container so map + UI are included
+	var original_material = notebook_viewport_container.material
 	var page_shader = ShaderMaterial.new()
 	page_shader.shader = load("res://assets/page_turn.gdshader")
-	notebook_texture.material = page_shader
+	notebook_viewport_container.material = page_shader
 	
-	# Store original notebook texture transform
-	var original_notebook_rotation = notebook_texture.rotation_degrees
-	var original_notebook_scale = notebook_texture.scale
-	var original_notebook_position = notebook_texture.position
+	# Store original container transform (future use)
+	var original_notebook_rotation = notebook_viewport_container.rotation_degrees
+	var original_notebook_scale = notebook_viewport_container.scale
+	var original_notebook_position = notebook_viewport_container.position
 	
 	print("DEBUG: Starting tween")
 	
@@ -561,35 +703,25 @@ func animate_level_transition():
 	tween.tween_method(func(progress): _set_shader_progress(page_shader, progress), 0.0, 1.0, 1.0).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(map_texture, "modulate:a", 0.0, 1.0).set_ease(Tween.EASE_IN_OUT)
 	tween.set_parallel(false)  # Switch back to sequential
-	tween.tween_interval(1.0)
 	
 	# 2. Swap texture and update level (instant via callback)
 	print("DEBUG: Queuing swap callback")
 	tween.tween_callback(_on_level_transition_middle.bind(new_map_texture, next_level))
-	
-	# 3. Turn page IN - shader and map fade (1.0s) - parallel operations
-	print("DEBUG: Starting IN phase")
-	tween.set_parallel(true)  # Switch to parallel mode
-	tween.tween_method(func(progress): _set_shader_progress(page_shader, progress), 1.0, 0.0, 1.0).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(map_texture, "modulate:a", 0.0, 1.0).set_ease(Tween.EASE_IN)
-	tween.set_parallel(false)  # Switch back to sequential
-	tween.tween_interval(1.0)
 	
 	# Remove shader with smooth color transition
 	print("DEBUG: Starting shader removal transition")
 	
 	# First, remove the shader (which is making the notebook darker)
 	tween.tween_callback(func():
-		notebook_texture.material = original_material  # Remove shader
+		notebook_viewport_container.material = original_material  # Remove shader
 	)
 	tween.tween_interval(0.05)
 	
 	# Set starting color (darker from shader effect)
-	notebook_texture.modulate = Color(0.75, 0.75, 0.75, 1.0)
+	notebook_viewport_container.modulate = Color(0.75, 0.75, 0.75, 1.0)
 	
 	# Now animate color back to normal
-	tween.tween_property(notebook_texture, "modulate", Color.WHITE, 0.4).set_ease(Tween.EASE_OUT)
-	tween.tween_interval(0.4)
+	tween.tween_property(notebook_viewport_container, "modulate", Color.WHITE, 0.4).set_ease(Tween.EASE_OUT)
 	
 	# 4. Short pause for visual settling
 	print("DEBUG: Animation complete")
@@ -600,14 +732,22 @@ func animate_level_transition():
 	tween.tween_callback(func(): 
 		print("DEBUG: Cleanup called")
 		set_process_input(true)
+		is_transitioning = false
 		print("DEBUG: Animation complete, spawning victim")
-		spawn_victim()
+		for i in range(base_spawn_count):
+			spawn_victim()
 	)
 
 func _on_level_transition_middle(new_map_texture_path: String, next_level_num: int):
 	"""Called during transition to swap map and advance level"""
+	# Clear existing victims from previous level
+	for child in map_area.get_children():
+		if child is Button:
+			child.queue_free()
+
 	# Change map texture
 	change_map_texture(new_map_texture_path)
+	map_texture.modulate.a = 1.0
 	
 	# Advance level
 	current_level = next_level_num
@@ -626,6 +766,7 @@ func update_level_ui():
 	var level_data = level_defs[current_level]
 	
 	# Update map label to show level name and progress
+	level_name_label.text = "LEVEL %d: %s" % [current_level, level_data["name"]]
 	var bosses_required = level_data["bosses_required"]
 	var progress_text = "Level %d: %s (%d/%d bosses)" % [
 		current_level,

@@ -85,10 +85,10 @@ The "Hunting Grounds" (left page) features:
 - **Elements:** Lake, cabins, trees drawn in simple ink lines
 - **Victim States:**
   - State 1 (Alive): Simple ink sketch of a face inside a circle
-  - State 2 (Eliminated): Fat Red "X" or Red Ink Splat overlay
+  - State 2 (Eliminated): Red ink splatter overlay (no big X)
 
 ### Interactive Elements
-- **Click Feedback:** Red "X" marks or ink splats
+- **Click Feedback:** Ink splats and red impact marks
 - **Floating Numbers:** Red text showing score/damage (e.g., "+10")
 - **Particles:** Ink splatter effects for feedback
 - **Animations:** Subtle "paper wobble" shader effect to make static images feel alive
@@ -103,7 +103,6 @@ The "Hunting Grounds" (left page) features:
 **UI Elements:**
 - ui_tape_strip.png (Semi-transparent yellow rectangle)
 - ui_paper_scrap.png (9-patch rect for upgrade buttons)
-- ui_red_x.png (Cross-out overlay)
 - ui_ink_splat.png (Particle effect)
 
 **Icons (Doodles):**
@@ -122,6 +121,7 @@ To make the game feel premium, these effects are implemented:
 4. **Scribble Animation:** Pen circling effect when buying upgrades
 5. **Parallax Mouse:** Notebook shifts 1-2 pixels opposite to mouse movement for depth
 6. **Wobble Shader:** Subtle "living drawing" effect on static images
+7. **Ink Splatter:** Red splats on elimination (short-lived particles)
 
 ---
 

@@ -47,7 +47,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 1)
 
 [node name="NotebookUI" type="Control" parent="."]
 layout_mode = 1
@@ -57,15 +56,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="NotebookBase" type="ColorRect" parent="NotebookUI"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="NotebookTexture" type="TextureRect" parent="NotebookUI/NotebookBase"]
+[node name="NotebookUnderLayer" type="TextureRect" parent="NotebookUI"]
+modulate = Color(0.9, 0.9, 0.9, 1)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -74,7 +66,38 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_0bbpv")
 
-[node name="MapTexture" type="TextureRect" parent="NotebookUI/NotebookBase"]
+[node name="NotebookViewportContainer" type="SubViewportContainer" parent="NotebookUI"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="NotebookViewport" type="SubViewport" parent="NotebookUI/NotebookViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1080, 1920)
+render_target_update_mode = 4
+
+[node name="NotebookBase" type="ColorRect" parent="NotebookUI/NotebookViewportContainer/NotebookViewport"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NotebookTexture" type="TextureRect" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_0bbpv")
+
+[node name="MapTexture" type="TextureRect" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase"]
 layout_mode = 1
 anchors_preset = -1
 anchor_top = 1.0
@@ -87,7 +110,7 @@ texture = ExtResource("3_rarhs")
 expand_mode = 5
 stretch_mode = 4
 
-[node name="ContentMargin" type="MarginContainer" parent="NotebookUI/NotebookBase"]
+[node name="ContentMargin" type="MarginContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -99,15 +122,15 @@ theme_override_constants/margin_top = 100
 theme_override_constants/margin_right = 100
 theme_override_constants/margin_bottom = 100
 
-[node name="VBox" type="VBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin"]
+[node name="VBox" type="VBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin"]
 layout_mode = 2
 theme_override_constants/separation = 20
 
-[node name="TopMargin" type="HBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox"]
+[node name="TopMargin" type="HBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox"]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="Title" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin"]
+[node name="Title" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/TopMargin"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0, 0, 0, 1)
@@ -116,10 +139,10 @@ theme_override_font_sizes/font_size = 48
 text = "SLASHER MANAGER"
 vertical_alignment = 1
 
-[node name="ResourceDisplay" type="VBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin"]
+[node name="ResourceDisplay" type="VBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/TopMargin"]
 layout_mode = 2
 
-[node name="ScreamLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay"]
+[node name="ScreamLabel" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0, 0, 1)
 theme_override_fonts/font = ExtResource("font_typewriter")
@@ -127,7 +150,7 @@ theme_override_font_sizes/font_size = 42
 text = "Screams: 0"
 horizontal_alignment = 2
 
-[node name="SPS" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay"]
+[node name="SPS" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/TopMargin/ResourceDisplay"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.4, 0.4, 1)
 theme_override_fonts/font = ExtResource("font_typewriter")
@@ -135,18 +158,26 @@ theme_override_font_sizes/font_size = 24
 text = "DPS: 0"
 horizontal_alignment = 2
 
-[node name="PageSplit" type="HBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox"]
+[node name="PageSplit" type="HBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 20
 
-[node name="LeftPage" type="VBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit"]
+[node name="LeftPage" type="VBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 theme_override_constants/separation = 10
 
-[node name="MapLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage"]
+[node name="LevelNameLabel" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("font_handwritten")
+theme_override_font_sizes/font_size = 28
+text = "LEVEL 1: LAKE CAMP"
+horizontal_alignment = 1
+
+[node name="MapLabel" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("font_handwritten")
@@ -154,13 +185,13 @@ theme_override_font_sizes/font_size = 24
 text = "HUNT AREA (2/3)"
 horizontal_alignment = 1
 
-[node name="MapArea" type="Panel" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage"]
+[node name="MapArea" type="Panel" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage"]
 custom_minimum_size = Vector2(0, 350)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_map_bg")
 
-[node name="TargetInfoBar" type="Panel" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea"]
+[node name="TargetInfoBar" type="Panel" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea"]
 custom_minimum_size = Vector2(0, 80)
 layout_mode = 1
 anchors_preset = 10
@@ -172,7 +203,7 @@ offset_bottom = 90.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_info_bar")
 
-[node name="VBox" type="VBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar"]
+[node name="VBox" type="VBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -185,14 +216,14 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="NameLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
+[node name="NameLabel" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("font_handwritten")
 theme_override_font_sizes/font_size = 24
 text = "TARGET NAME"
 
-[node name="FlavorLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
+[node name="FlavorLabel" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.2, 0.2, 1)
 theme_override_fonts/font = ExtResource("font_typewriter")
@@ -200,7 +231,7 @@ theme_override_font_sizes/font_size = 16
 text = "Flavor text goes here..."
 autowrap_mode = 3
 
-[node name="HPBar" type="ProgressBar" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
+[node name="HPBar" type="ProgressBar" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/LeftPage/MapArea/TargetInfoBar/VBox"]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_hp_bg")
@@ -208,12 +239,12 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
 value = 50.0
 show_percentage = false
 
-[node name="RightPage" type="VBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit"]
+[node name="RightPage" type="VBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="ShopLabel" type="Label" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage"]
+[node name="ShopLabel" type="Label" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/RightPage"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("font_handwritten")
@@ -221,12 +252,12 @@ theme_override_font_sizes/font_size = 28
 text = "UPGRADES"
 horizontal_alignment = 1
 
-[node name="UpgradeScroll" type="ScrollContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage"]
+[node name="UpgradeScroll" type="ScrollContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/RightPage"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="UpgradeList" type="VBoxContainer" parent="NotebookUI/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/UpgradeScroll"]
+[node name="UpgradeList" type="VBoxContainer" parent="NotebookUI/NotebookViewportContainer/NotebookViewport/NotebookBase/ContentMargin/VBox/PageSplit/RightPage/UpgradeScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 20

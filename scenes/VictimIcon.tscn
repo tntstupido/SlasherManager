@@ -1,9 +1,11 @@
 [gd_scene load_steps=3 format=3 uid="uid://cb5qxg73aof68"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clear"]
+
 [sub_resource type="GDScript" id="GDScript_victim"]
 script/source = "extends Button
 
-signal victim_eliminated(points)
+signal victim_eliminated(points, hit_pos, victim)
 signal victim_targeted(data)
 signal boss_attacks(damage)
 
@@ -52,10 +54,6 @@ func take_damage(amount: float):
 	
 	if current_hp <= 0:
 		eliminate()
-	else:
-		var tween = create_tween()
-		tween.tween_property(self, \"scale\", Vector2(0.9, 0.9), 0.05)
-		tween.tween_property(self, \"scale\", Vector2(1.0, 1.0), 0.05)
 
 func emit_targeted_signal():
 	victim_targeted.emit({
@@ -67,9 +65,8 @@ func emit_targeted_signal():
 
 func eliminate():
 	is_eliminated = true
-	x_label.show()
 	portrait.modulate.a = 0.5
-	victim_eliminated.emit(reward_points)
+	victim_eliminated.emit(reward_points, global_position + (size / 2), self)
 	
 	var tween = create_tween()
 	tween.tween_property(self, \"modulate:a\", 0.0, 1.0).set_delay(0.5)
@@ -83,6 +80,11 @@ func update_visuals():
 	portrait.modulate = Color(1.0, hp_percent, hp_percent, 1.0)
 
 func _on_pressed():
+	if is_eliminated:
+		return
+	var tween = create_tween()
+	tween.tween_property(self, \"scale\", Vector2(0.9, 0.9), 0.05)
+	tween.tween_property(self, \"scale\", Vector2(1.0, 1.0), 0.05)
 	emit_targeted_signal()
 
 func _process(delta):
@@ -98,16 +100,14 @@ func _process(delta):
 			tween.tween_property(self, \"modulate\", Color(1.0, 0.9, 0.9), 0.1)
 "
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_clear"]
-
 [node name="VictimIcon" type="Button"]
 custom_minimum_size = Vector2(400, 400)
 offset_right = 400.0
 offset_bottom = 400.0
 pivot_offset = Vector2(200, 200)
 theme_override_styles/normal = SubResource("StyleBoxEmpty_clear")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_clear")
 theme_override_styles/pressed = SubResource("StyleBoxEmpty_clear")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_clear")
 theme_override_styles/disabled = SubResource("StyleBoxEmpty_clear")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_clear")
 script = SubResource("GDScript_victim")
